@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NightRestore — AI Night Image Restoration</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@300;400;500&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #050D1A;
+  --bg2:      #071426;
+  --card:     #0B1E35;
+  --card2:    #0D2440;
+  --teal:     #0EA5C9;
+  --cyan:     #22D3EE;
+  --mint:     #67E8F9;
+  --amber:    #F59E0B;
+  --green:    #10B981;
+  --white:    #F0FAFA;
+  --gray:     #94A3B8;
+  --gray2:    #64748B;
+  --border:   rgba(14,165,201,0.18);
+  --glow:     rgba(14,165,201,0.12);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--white);min-height:100vh;overflow-x:hidden;}
+
+/* Starfield canvas */
+#stars{position:fixed;inset:0;pointer-events:none;z-index:0;}
+
+/* Noise overlay */
+body::after{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 300 300' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:1;opacity:.6;}
+
+/* ──────────── NAV ──────────── */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 52px;height:62px;background:rgba(5,13,26,0.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);}
+.logo{font-family:'Syne',sans-serif;font-size:19px;font-weight:800;color:var(--white);letter-spacing:-0.5px;}
+.logo span{color:var(--cyan);}
+.nav-links{display:flex;gap:2px;}
+.nav-link{padding:7px 18px;font-family:'Outfit',sans-serif;font-size:13px;font-weight:500;color:var(--gray);background:transparent;border:none;cursor:pointer;border-radius:6px;transition:all .2s;letter-spacing:.3px;}
+.nav-link:hover{color:var(--cyan);background:var(--glow);}
+.nav-link.act{color:var(--cyan);background:rgba(14,165,201,0.1);}
+.nav-demo{background:var(--teal);color:#fff;border:none;padding:8px 20px;border-radius:8px;font-family:'Outfit',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;letter-spacing:.3px;}
+.nav-demo:hover{background:var(--cyan);box-shadow:0 0 24px rgba(34,211,238,.3);}
+
+/* ──────────── PAGES ──────────── */
+.page{display:none;min-height:100vh;padding-top:62px;position:relative;z-index:2;}
+.page.act{display:block;}
+
+/* ══════════════ HOME ══════════════ */
+.hero{min-height:calc(100vh - 62px);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 24px 100px;position:relative;text-align:center;overflow:hidden;}
+
+/* Glow orbs */
+.orb{position:absolute;border-radius:50%;filter:blur(80px);pointer-events:none;}
+.orb1{width:500px;height:500px;background:radial-gradient(circle,rgba(14,165,201,.18),transparent 70%);top:-80px;left:-120px;}
+.orb2{width:400px;height:400px;background:radial-gradient(circle,rgba(6,182,212,.12),transparent 70%);bottom:-100px;right:-80px;}
+
+.badge{display:inline-flex;align-items:center;gap:8px;background:rgba(14,165,201,0.08);border:1px solid rgba(14,165,201,0.3);color:var(--cyan);font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:400;padding:6px 16px;border-radius:30px;margin-bottom:28px;animation:fadeUp .8s ease both;letter-spacing:.5px;}
+.badge::before{content:'';width:6px;height:6px;background:var(--cyan);border-radius:50%;animation:pulse 2s ease infinite;}
+@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(34,211,238,.5)}50%{opacity:.5;box-shadow:0 0 0 6px transparent}}
+
+.hero h1{font-family:'Syne',sans-serif;font-size:clamp(52px,9vw,104px);font-weight:800;line-height:.95;letter-spacing:-4px;color:var(--white);animation:fadeUp .8s .1s ease both;}
+.hero h1 .grd{background:linear-gradient(135deg,var(--cyan),var(--mint));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hero-sub{font-size:17px;color:var(--gray);font-weight:300;line-height:1.8;max-width:520px;margin-top:24px;animation:fadeUp .8s .2s ease both;}
+.hero-sub strong{color:var(--white);font-weight:500;}
+
+.hero-btns{display:flex;gap:14px;margin-top:40px;animation:fadeUp .8s .3s ease both;}
+.btn-glow{background:linear-gradient(135deg,var(--teal),var(--cyan));color:#fff;border:none;padding:14px 34px;border-radius:10px;font-family:'Outfit',sans-serif;font-size:15px;font-weight:500;cursor:pointer;box-shadow:0 0 30px rgba(14,165,201,.3);transition:all .25s;letter-spacing:.2px;}
+.btn-glow:hover{transform:translateY(-2px);box-shadow:0 0 50px rgba(14,165,201,.5);}
+.btn-outline{background:transparent;color:var(--gray);border:1.5px solid var(--border);padding:14px 30px;border-radius:10px;font-family:'Outfit',sans-serif;font-size:15px;font-weight:500;cursor:pointer;transition:all .25s;}
+.btn-outline:hover{border-color:var(--teal);color:var(--cyan);}
+
+.hero-stats{display:flex;gap:56px;margin-top:80px;padding-top:44px;border-top:1px solid var(--border);animation:fadeUp .8s .4s ease both;}
+.stat{text-align:center;}
+.sn{font-family:'Syne',sans-serif;font-size:36px;font-weight:800;color:var(--white);line-height:1;}
+.sn em{color:var(--cyan);font-style:normal;}
+.sl{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--gray2);letter-spacing:1.5px;margin-top:6px;text-transform:uppercase;}
+
+/* feature grid */
+.feat-section{padding:80px 48px;max-width:1100px;margin:0 auto;}
+.section-label{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--teal);letter-spacing:3px;margin-bottom:12px;text-transform:uppercase;}
+.section-title{font-family:'Syne',sans-serif;font-size:clamp(30px,4vw,44px);font-weight:800;color:var(--white);line-height:1.1;letter-spacing:-1.5px;margin-bottom:48px;}
+.section-title span{color:var(--cyan);}
+
+.feat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;}
+.feat-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:28px;transition:all .3s;position:relative;overflow:hidden;}
+.feat-card::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 50% at 50% 0%,rgba(14,165,201,.06),transparent);opacity:0;transition:opacity .3s;}
+.feat-card:hover{border-color:rgba(34,211,238,.35);transform:translateY(-4px);box-shadow:0 20px 60px rgba(14,165,201,.12);}
+.feat-card:hover::before{opacity:1;}
+.feat-icon{width:44px;height:44px;background:rgba(14,165,201,.1);border:1px solid rgba(14,165,201,.2);border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:18px;font-size:20px;}
+.feat-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;color:var(--white);margin-bottom:8px;letter-spacing:-.3px;}
+.feat-desc{font-size:13.5px;color:var(--gray);line-height:1.7;font-weight:300;}
+.feat-tag{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--teal);background:rgba(14,165,201,.08);padding:3px 8px;border-radius:4px;margin-top:12px;letter-spacing:.5px;}
+
+/* pipeline section */
+.pipeline-section{padding:60px 48px 80px;max-width:1100px;margin:0 auto;}
+.pipeline{display:flex;align-items:center;gap:0;overflow-x:auto;padding-bottom:12px;}
+.pipe-step{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px 18px;min-width:155px;text-align:center;flex-shrink:0;transition:all .25s;}
+.pipe-step:hover{border-color:var(--teal);box-shadow:0 0 30px var(--glow);}
+.pipe-step.highlight{background:var(--card2);border-color:var(--teal);box-shadow:0 0 20px var(--glow);}
+.pipe-num{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--teal);letter-spacing:1px;margin-bottom:10px;}
+.pipe-name{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--white);margin-bottom:6px;}
+.pipe-sub{font-size:11px;color:var(--gray);line-height:1.5;}
+.pipe-arrow{color:var(--teal);font-size:18px;padding:0 8px;opacity:.6;flex-shrink:0;}
+
+/* ══════════════ RESTORE ══════════════ */
+.restore-wrap{max-width:820px;margin:0 auto;padding:60px 24px 80px;}
+.page-eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--teal);letter-spacing:2.5px;text-transform:uppercase;margin-bottom:10px;}
+.page-h{font-family:'Syne',sans-serif;font-size:clamp(28px,4vw,42px);font-weight:800;color:var(--white);line-height:1.1;letter-spacing:-1.5px;margin-bottom:8px;}
+.page-p{font-size:15px;color:var(--gray);font-weight:300;line-height:1.75;max-width:480px;margin-bottom:28px;}
+
+/* API bar */
+.api-bar{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 18px;margin-bottom:24px;flex-wrap:wrap;}
+.api-label{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gray2);white-space:nowrap;letter-spacing:.3px;}
+.api-inp{flex:1;min-width:240px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:9px 13px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--white);outline:none;transition:border-color .2s;}
+.api-inp:focus{border-color:var(--teal);}
+.api-inp::placeholder{color:var(--gray2);}
+.api-test{background:var(--teal);color:#fff;border:none;padding:9px 18px;border-radius:8px;font-family:'Outfit',sans-serif;font-size:12px;font-weight:500;cursor:pointer;white-space:nowrap;transition:background .2s;}
+.api-test:hover{background:var(--cyan);}
+.api-dot{display:inline-flex;align-items:center;gap:5px;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:400;padding:5px 12px;border-radius:20px;white-space:nowrap;}
+.api-dot.ok{background:rgba(16,185,129,.12);color:var(--green);}
+.api-dot.ok::before{content:'';width:6px;height:6px;background:var(--green);border-radius:50%;}
+.api-dot.no{background:rgba(245,158,11,.1);color:var(--amber);}
+.api-dot.no::before{content:'';width:6px;height:6px;background:var(--amber);border-radius:50%;}
+
+/* drop zone */
+.drop-zone{background:var(--card);border:2px dashed var(--border);border-radius:20px;padding:72px 32px;text-align:center;cursor:pointer;transition:all .25s;position:relative;overflow:hidden;}
+.drop-zone:hover,.drop-zone.over{border-color:var(--teal);background:rgba(14,165,201,.04);box-shadow:inset 0 0 60px rgba(14,165,201,.04);}
+.drop-icon-wrap{width:72px;height:72px;background:rgba(14,165,201,.1);border:1px solid rgba(14,165,201,.2);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:28px;transition:transform .25s;}
+.drop-zone:hover .drop-icon-wrap{transform:scale(1.1) rotate(-8deg);}
+.drop-title{font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:var(--white);margin-bottom:8px;letter-spacing:-.3px;}
+.drop-sub{font-size:13px;color:var(--gray2);}
+.drop-sub strong{color:var(--teal);cursor:pointer;}
+#fileInp{display:none;}
+
+/* loading */
+.loading{display:none;position:absolute;inset:0;background:rgba(5,13,26,.93);backdrop-filter:blur(8px);flex-direction:column;align-items:center;justify-content:center;border-radius:18px;z-index:5;}
+.loading.show{display:flex;}
+.spin{width:44px;height:44px;border:2px solid var(--border);border-top-color:var(--cyan);border-radius:50%;animation:spin .7s linear infinite;margin-bottom:20px;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-title{font-family:'Syne',sans-serif;font-size:16px;color:var(--white);font-weight:700;margin-bottom:6px;}
+.loading-step{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gray);}
+.loading-bar{width:160px;height:2px;background:var(--border);border-radius:2px;margin-top:16px;overflow:hidden;}
+.loading-fill{height:100%;background:linear-gradient(90deg,var(--teal),var(--cyan));border-radius:2px;width:0%;transition:width .6s ease;}
+
+/* result */
+.result-box{display:none;margin-top:24px;border-radius:20px;overflow:hidden;border:1px solid var(--border);}
+.result-box.show{display:block;animation:fadeUp .4s ease;}
+.result-bar{background:var(--card2);padding:14px 22px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);}
+.result-bar-l{font-family:'Syne',sans-serif;font-size:14px;color:var(--white);font-weight:700;}
+.result-bar-r{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gray2);}
+.compare-wrap{background:#000;display:grid;grid-template-columns:1fr 1fr;position:relative;}
+.compare-side{aspect-ratio:4/3;overflow:hidden;position:relative;}
+.compare-side img{width:100%;height:100%;object-fit:cover;display:block;}
+.clabel{position:absolute;bottom:10px;left:10px;background:rgba(0,0,0,.65);color:#fff;font-family:'JetBrains Mono',monospace;font-size:10px;padding:4px 10px;border-radius:20px;letter-spacing:.5px;}
+.cdiv{position:absolute;left:50%;top:0;bottom:0;width:2px;background:var(--cyan);z-index:2;}
+.result-footer{background:var(--card);padding:18px 22px;display:flex;align-items:center;gap:28px;flex-wrap:wrap;border-top:1px solid var(--border);}
+.rstat-v{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--white);}
+.rstat-v em{color:var(--cyan);font-style:normal;font-size:13px;font-weight:400;}
+.rstat-l{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--gray2);letter-spacing:1.5px;text-transform:uppercase;margin-top:2px;}
+.r-btns{margin-left:auto;display:flex;gap:10px;}
+.rbtn{padding:10px 22px;border-radius:8px;font-family:'Outfit',sans-serif;font-size:13px;font-weight:500;cursor:pointer;border:none;transition:all .2s;}
+.rbtn-dl{background:linear-gradient(135deg,var(--teal),var(--cyan));color:#fff;box-shadow:0 0 20px rgba(14,165,201,.25);}
+.rbtn-dl:hover{box-shadow:0 0 40px rgba(14,165,201,.4);}
+.rbtn-new{background:transparent;color:var(--gray);border:1px solid var(--border);}
+.rbtn-new:hover{border-color:var(--teal);color:var(--cyan);}
+
+/* ══════════════ ABOUT ══════════════ */
+.about-wrap{max-width:980px;margin:0 auto;padding:60px 24px 80px;}
+.about-hero{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:start;margin-bottom:72px;}
+.about-text h2{font-family:'Syne',sans-serif;font-size:clamp(28px,3.5vw,40px);font-weight:800;color:var(--white);line-height:1.1;letter-spacing:-1.5px;margin-bottom:18px;}
+.about-text p{font-size:15px;color:var(--gray);line-height:1.8;font-weight:300;margin-bottom:14px;}
+.about-text a{color:var(--cyan);text-decoration:none;}
+.about-text a:hover{text-decoration:underline;}
+.metrics-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.metric-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;}
+.metric-card:hover{border-color:var(--teal);}
+.mn{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:var(--white);}
+.mn em{color:var(--cyan);font-style:normal;}
+.ml{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--gray2);letter-spacing:1px;text-transform:uppercase;margin-top:4px;}
+.tech-section{margin-bottom:60px;}
+.tech-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+.tech-item{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;transition:all .2s;}
+.tech-item:hover{border-color:var(--teal);transform:translateY(-2px);}
+.tech-item-name{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--white);margin-bottom:4px;}
+.tech-item-role{font-size:12px;color:var(--gray);font-weight:300;}
+.tech-item-tag{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--teal);background:rgba(14,165,201,.08);padding:2px 7px;border-radius:4px;display:inline-block;margin-top:8px;}
+.team-section{margin-bottom:60px;}
+.team-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;}
+.team-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px 14px;text-align:center;transition:all .25s;}
+.team-card:hover{border-color:var(--teal);transform:translateY(-4px);box-shadow:0 16px 48px rgba(14,165,201,.12);}
+.team-avatar{width:50px;height:50px;background:linear-gradient(135deg,var(--teal),var(--cyan));border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:#fff;}
+.team-name{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--white);margin-bottom:4px;}
+.team-prn{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--gray2);margin-bottom:8px;letter-spacing:.3px;}
+.team-role{font-size:11px;color:var(--teal);font-weight:400;}
+
+/* ══════════════ RESEARCH ══════════════ */
+.research-wrap{max-width:980px;margin:0 auto;padding:60px 24px 80px;}
+.paper-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:32px;margin-bottom:28px;transition:all .25s;}
+.paper-card:hover{border-color:var(--teal);box-shadow:0 12px 48px rgba(14,165,201,.1);}
+.paper-title{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--white);letter-spacing:-.5px;margin-bottom:10px;}
+.paper-authors{font-size:13px;color:var(--teal);margin-bottom:6px;}
+.paper-venue{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gray2);margin-bottom:14px;}
+.paper-abs{font-size:14px;color:var(--gray);line-height:1.75;font-weight:300;margin-bottom:16px;}
+.paper-tags{display:flex;gap:8px;flex-wrap:wrap;}
+.ptag{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--cyan);background:rgba(14,165,201,.08);border:1px solid rgba(14,165,201,.2);padding:4px 10px;border-radius:6px;}
+.contribs-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:24px;}
+.contrib-item{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:18px;}
+.contrib-item:hover{border-color:var(--teal);}
+.contrib-num{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--teal);margin-bottom:6px;letter-spacing:.5px;}
+.contrib-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--white);margin-bottom:6px;}
+.contrib-desc{font-size:12.5px;color:var(--gray);line-height:1.65;}
+
+/* ══════════════ SHARED ══════════════ */
+@keyframes fadeUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+<canvas id="stars"></canvas>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">Night<span>Restore</span></div>
+  <div class="nav-links">
+    <button class="nav-link act" onclick="show('home',this)">Home</button>
+    <button class="nav-link" onclick="show('restore',this)">Restore</button>
+    <button class="nav-link" onclick="show('about',this)">About</button>
+    <button class="nav-link" onclick="show('research',this)">Research</button>
+  </div>
+  <button class="nav-demo" onclick="show('restore',document.querySelectorAll('.nav-link')[1])">Try Demo →</button>
+</nav>
+
+<!-- ══════════════ HOME ══════════════ -->
+<div class="page act" id="page-home">
+  <section class="hero">
+    <div class="orb orb1"></div>
+    <div class="orb orb2"></div>
+    <div class="badge">✦ PSNR 21.31 dB · SSIM 0.823 · LOL-v2 Validated</div>
+    <h1>Restore the<br><span class="grd">Night</span></h1>
+    <p class="hero-sub">
+      Self-supervised AI that handles <strong>rain, fog, noise & flare</strong> simultaneously.
+      No paired training images needed. Built on NAFNet, deployed on Hugging Face.
+    </p>
+    <div class="hero-btns">
+      <button class="btn-glow" onclick="show('restore',document.querySelectorAll('.nav-link')[1])">Restore an Image</button>
+      <button class="btn-outline" onclick="show('research',document.querySelectorAll('.nav-link')[3])">Read the Paper</button>
+    </div>
+    <div class="hero-stats">
+      <div class="stat"><div class="sn">21<em>.31</em></div><div class="sl">PSNR (dB)</div></div>
+      <div class="stat"><div class="sn">0<em>.823</em></div><div class="sl">SSIM Score</div></div>
+      <div class="stat"><div class="sn">10<em>.6M</em></div><div class="sl">Parameters</div></div>
+      <div class="stat"><div class="sn">4<em>×</em></div><div class="sl">Degradation Types</div></div>
+    </div>
+  </section>
+
+  <section class="feat-section">
+    <div class="section-label">// CAPABILITIES</div>
+    <div class="section-title">What makes NightRestore <span>different</span></div>
+    <div class="feat-grid">
+      <div class="feat-card">
+        <div class="feat-icon">🌙</div>
+        <div class="feat-title">Unified Multi-Degradation</div>
+        <div class="feat-desc">Handles rain + fog + noise + lens flare all at once. Existing methods tackle only one at a time.</div>
+        <div class="feat-tag">NAFNet backbone</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">🔬</div>
+        <div class="feat-title">Self-Supervised Training</div>
+        <div class="feat-desc">Zero paired clean images required. NightSynthesizer generates degradations on-the-fly for training.</div>
+        <div class="feat-tag">NightSynthesizer</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">💡</div>
+        <div class="feat-title">Retinex Decomposition</div>
+        <div class="feat-desc">Separates illumination from reflectance using Single-Scale and Multi-Scale Retinex theory.</div>
+        <div class="feat-tag">Physics-aware</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">⚡</div>
+        <div class="feat-title">Lightweight & Fast</div>
+        <div class="feat-desc">65 GMACs vs 778 GMACs for MPRNet. Runs on free Colab T4 GPU — no enterprise hardware needed.</div>
+        <div class="feat-tag">65 GMACs</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">🌊</div>
+        <div class="feat-title">FFT Frequency Loss</div>
+        <div class="feat-desc">Novel frequency-domain consistency loss that preserves texture fidelity beyond pixel-level supervision.</div>
+        <div class="feat-tag">Novel contribution</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">📐</div>
+        <div class="feat-title">Arbitrary Resolution</div>
+        <div class="feat-desc">Sliding window inference with Hanning-weighted blending — no seam artifacts on any input size.</div>
+        <div class="feat-tag">Hanning blend</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="pipeline-section">
+    <div class="section-label">// PIPELINE</div>
+    <div class="section-title">End-to-end <span>restoration flow</span></div>
+    <div class="pipeline">
+      <div class="pipe-step">
+        <div class="pipe-num">01</div>
+        <div class="pipe-name">Input</div>
+        <div class="pipe-sub">Any night image, any resolution</div>
+      </div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-step">
+        <div class="pipe-num">02</div>
+        <div class="pipe-name">Degrade Detect</div>
+        <div class="pipe-sub">Luminance · Contrast · Sharpness</div>
+      </div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-step">
+        <div class="pipe-num">03</div>
+        <div class="pipe-name">DCP Defog</div>
+        <div class="pipe-sub">Dark Channel Prior (if foggy)</div>
+      </div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-step highlight">
+        <div class="pipe-num">04</div>
+        <div class="pipe-name">DirectNAFNet</div>
+        <div class="pipe-sub">Sliding window + Hanning blend</div>
+      </div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-step">
+        <div class="pipe-num">05</div>
+        <div class="pipe-name">Post Process</div>
+        <div class="pipe-sub">Bilateral · CLAHE · Brightness</div>
+      </div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-step">
+        <div class="pipe-num">06</div>
+        <div class="pipe-name">Output</div>
+        <div class="pipe-sub">Bright & clear restored image</div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ══════════════ RESTORE ══════════════ -->
+<div class="page" id="page-restore">
+  <div class="restore-wrap">
+    <div class="page-eyebrow">// IMAGE RESTORATION</div>
+    <div class="page-h">Restore Your Night Image</div>
+    <p class="page-p">Upload a low-light, foggy, or degraded photo. Connect your Gradio endpoint or use the built-in demo.</p>
+
+    <div class="api-bar">
+      <span class="api-label">GRADIO URL</span>
+      <input id="apiUrl" class="api-inp" type="text"
+        value="https://prrakhar07-nightrestore.hf.space" placeholder="https://your-space.hf.space" />
+      <button class="api-test" onclick="testAPI()">Test</button>
+      <span id="apiDot" class="api-dot no">Not configured</span>
+    </div>
+
+    <div class="drop-zone" id="dropZone"
+      onclick="document.getElementById('fileInp').click()"
+      ondragover="ev(event);this.classList.add('over')"
+      ondragleave="this.classList.remove('over')"
+      ondrop="onDrop(event)">
+      <div class="loading" id="loader">
+        <div class="spin"></div>
+        <div class="loading-title">Restoring Image</div>
+        <div class="loading-step" id="lstep">Analysing degradation...</div>
+        <div class="loading-bar"><div class="loading-fill" id="lfill"></div></div>
+      </div>
+      <div class="drop-icon-wrap">🌙</div>
+      <div class="drop-title">Drop your night image here</div>
+      <div class="drop-sub">or <strong>browse files</strong> · PNG, JPG, WEBP</div>
+      <input type="file" id="fileInp" accept="image/*" onchange="onFile(event)" />
+    </div>
+
+    <div class="result-box" id="resultBox">
+      <div class="result-bar">
+        <span class="result-bar-l">✦ Restoration Complete</span>
+        <span class="result-bar-r" id="resMeta"></span>
+      </div>
+      <div class="compare-wrap">
+        <div class="compare-side"><img id="imgBefore" src="" alt="Original" /><span class="clabel">ORIGINAL</span></div>
+        <div class="compare-side"><img id="imgAfter"  src="" alt="Restored" /><span class="clabel">RESTORED</span></div>
+        <div class="cdiv"></div>
+      </div>
+      <div class="result-footer">
+        <div><div class="rstat-v">+60% <em>brightness boost</em></div><div class="rstat-l">Enhancement</div></div>
+        <div><div class="rstat-v">NAFNet <em>v13</em></div><div class="rstat-l">Model</div></div>
+        <div class="r-btns">
+          <button class="rbtn rbtn-dl" onclick="downloadImg()">↓ Download</button>
+          <button class="rbtn rbtn-new" onclick="resetAll()">New Image</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ ABOUT ══════════════ -->
+<div class="page" id="page-about">
+  <div class="about-wrap">
+    <div class="page-eyebrow">// ABOUT THE PROJECT</div>
+    <div class="about-hero">
+      <div class="about-text">
+        <h2>NightRestore: Universal Night Image Restoration</h2>
+        <p>A deep learning project from D Y Patil International University, Pune — Department of Computer Applications.</p>
+        <p>We built a unified, self-supervised image restoration system that tackles all night-time degradations simultaneously using a lightweight NAFNet-based architecture.</p>
+        <p>Deployed live at <a href="https://huggingface.co/spaces/prrakhar07/nightrestore" target="_blank">huggingface.co/spaces/prrakhar07/nightrestore</a></p>
+      </div>
+      <div class="metrics-grid">
+        <div class="metric-card"><div class="mn">21<em>.31</em></div><div class="ml">PSNR (dB)</div></div>
+        <div class="metric-card"><div class="mn">0<em>.823</em></div><div class="ml">SSIM Score</div></div>
+        <div class="metric-card"><div class="mn">10<em>.6M</em></div><div class="ml">Parameters</div></div>
+        <div class="metric-card"><div class="mn">65<em>G</em></div><div class="ml">MACs</div></div>
+        <div class="metric-card"><div class="mn">30<em>ep</em></div><div class="ml">Fine-tuning</div></div>
+        <div class="metric-card"><div class="mn">13<em>v</em></div><div class="ml">Ablation Versions</div></div>
+      </div>
+    </div>
+
+    <div class="tech-section">
+      <div class="section-label">// TECH STACK</div>
+      <div class="section-title" style="font-size:28px;margin-bottom:28px;">Technologies <span>Used</span></div>
+      <div class="tech-grid">
+        <div class="tech-item"><div class="tech-item-name">Python + PyTorch</div><div class="tech-item-role">Core DL framework, CUDA 12.8</div><div class="tech-item-tag">Framework</div></div>
+        <div class="tech-item"><div class="tech-item-name">NAFNet (DirectNAFNet)</div><div class="tech-item-role">SimpleGate + SCA, activation-free</div><div class="tech-item-tag">Backbone</div></div>
+        <div class="tech-item"><div class="tech-item-name">OpenCV + Pillow</div><div class="tech-item-role">Image processing, CLAHE, bilateral</div><div class="tech-item-tag">Vision</div></div>
+        <div class="tech-item"><div class="tech-item-name">Retinex SSR/MSR</div><div class="tech-item-role">Illumination-reflectance decomposition</div><div class="tech-item-tag">Physics</div></div>
+        <div class="tech-item"><div class="tech-item-name">Dark Channel Prior</div><div class="tech-item-role">Classical pre-defogging stage</div><div class="tech-item-tag">Pre-processing</div></div>
+        <div class="tech-item"><div class="tech-item-name">Gradio + HuggingFace</div><div class="tech-item-role">Web app deployment & hosting</div><div class="tech-item-tag">Deployment</div></div>
+        <div class="tech-item"><div class="tech-item-name">LOL-v2 Dataset</div><div class="tech-item-role">500 paired low-light images</div><div class="tech-item-tag">Dataset</div></div>
+        <div class="tech-item"><div class="tech-item-name">Flare7K</div><div class="tech-item-role">7000 flare patterns for augmentation</div><div class="tech-item-tag">Dataset</div></div>
+        <div class="tech-item"><div class="tech-item-name">Google Colab T4</div><div class="tech-item-role">15GB VRAM GPU, free tier training</div><div class="tech-item-tag">Platform</div></div>
+      </div>
+    </div>
+
+    <div class="team-section">
+      <div class="section-label">// THE TEAM</div>
+      <div class="section-title" style="font-size:28px;margin-bottom:28px;">Meet the <span>Group</span></div>
+      <div class="team-grid">
+        <div class="team-card">
+          <div class="team-avatar">P</div>
+          <div class="team-name">Prakhar Sharma</div>
+          <div class="team-prn">20250804051</div>
+          <div class="team-role">Lead Architect & Training</div>
+        </div>
+        <div class="team-card">
+          <div class="team-avatar">A</div>
+          <div class="team-name">Atharva Jaind</div>
+          <div class="team-prn">20250804011</div>
+          <div class="team-role">Data & Augmentation</div>
+        </div>
+        <div class="team-card">
+          <div class="team-avatar">A</div>
+          <div class="team-name">Avanti Kate</div>
+          <div class="team-prn">20250804012</div>
+          <div class="team-role">Pre/Post Processing</div>
+        </div>
+        <div class="team-card">
+          <div class="team-avatar">P</div>
+          <div class="team-name">Prajwal Deshpande</div>
+          <div class="team-prn">20250804050</div>
+          <div class="team-role">Inference & Deployment</div>
+        </div>
+        <div class="team-card">
+          <div class="team-avatar">N</div>
+          <div class="team-name">Niraj Chavan</div>
+          <div class="team-prn">20250804125</div>
+          <div class="team-role">Research & Presentation</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ RESEARCH ══════════════ -->
+<div class="page" id="page-research">
+  <div class="research-wrap">
+    <div class="page-eyebrow">// RESEARCH</div>
+    <div class="page-h">Paper & Contributions</div>
+    <p class="page-p" style="margin-bottom:36px;">Our IEEE-format research paper documents the full NightRestore system, ablation study, and deployment.</p>
+
+    <div class="paper-card">
+      <div class="paper-title">NightRestore: A NAFNet-Based Universal Night Image Restoration System with Adaptive Multi-Degradation Pipeline</div>
+      <div class="paper-authors">Prakhar Sharma · Atharva Jaind · Avanti Kate · Prajwal Deshpande · Niraj Chavan</div>
+      <div class="paper-venue">D Y Patil International University, Pune · Dept. Computer Applications · 2025</div>
+      <div class="paper-abs">We present NightRestore, a unified image restoration system built on NAFNet that extends the original activation-free architecture with multi-task training on LOL-v2 and Flare7K, automatic degradation detection, Dark Channel Prior defogging, sliding window inference with Hanning blending, and adaptive post-processing. Our final model achieves PSNR of 21.31 dB and SSIM of 0.823 on the LOL-v2 validation set — a significant improvement over the self-supervised baseline of 13.30 dB.</div>
+      <div class="paper-tags">
+        <span class="ptag">Image Restoration</span>
+        <span class="ptag">Low-Light Enhancement</span>
+        <span class="ptag">NAFNet</span>
+        <span class="ptag">Multi-Degradation</span>
+        <span class="ptag">Self-Supervised</span>
+        <span class="ptag">Night Vision</span>
+      </div>
+    </div>
+
+    <div class="section-label" style="margin-top:48px;">// CONTRIBUTIONS</div>
+    <div class="section-title" style="font-size:26px;margin-bottom:24px;">7 Novel <span>Contributions</span></div>
+    <div class="contribs-grid">
+      <div class="contrib-item">
+        <div class="contrib-num">01 / ARCHITECTURE</div>
+        <div class="contrib-title">DirectNAFNet</div>
+        <div class="contrib-desc">Reimplemented NAFNet with width=32, encoder blocks [2,2,2,4], 10.6M params, skip-init β,γ=10⁻³. Matches original 65 GMACs.</div>
+      </div>
+      <div class="contrib-item">
+        <div class="contrib-num">02 / AUGMENTATION</div>
+        <div class="contrib-title">NightSynthesizer</div>
+        <div class="contrib-desc">Stochastic pipeline applying Gaussian noise σ~U(5,50), fog via atmospheric model, rain streaks, and Flare7K overlays.</div>
+      </div>
+      <div class="contrib-item">
+        <div class="contrib-num">03 / RUNTIME</div>
+        <div class="contrib-title">Automatic Degradation Detector</div>
+        <div class="contrib-desc">Statistical classifier using mean luminance μ_L, contrast σ_L, and Laplacian variance λ to activate correct pre-processing.</div>
+      </div>
+      <div class="contrib-item">
+        <div class="contrib-num">04 / PRE-PROCESSING</div>
+        <div class="contrib-title">DCP Defogging Stage</div>
+        <div class="contrib-desc">Dark Channel Prior with ω=0.85, t_min=0.15. Decouples haze removal from the neural network for foggy inputs.</div>
+      </div>
+      <div class="contrib-item">
+        <div class="contrib-num">05 / INFERENCE</div>
+        <div class="contrib-title">Hanning Window Blending</div>
+        <div class="contrib-desc">256px patches, 64px overlap, weighted by w(i,j)=hann(i)·hann(j). Supports arbitrary resolution inputs seamlessly.</div>
+      </div>
+      <div class="contrib-item">
+        <div class="contrib-num">06 / POST-PROCESSING</div>
+        <div class="contrib-title">Adaptive Post-Pipeline</div>
+        <div class="contrib-desc">Bilateral denoising → LAB color correction → adaptive CLAHE → conservative brightness scaling → conditional unsharp mask.</div>
+      </div>
+      <div class="contrib-item">
+        <div class="contrib-num">07 / EVALUATION</div>
+        <div class="contrib-title">Ablation Study (v2→v13)</div>
+        <div class="contrib-desc">13 training versions tracked from 13.30 dB (self-supervised) → 15.15 dB (MoE) → 19.05 dB → 21.31 dB (final, +60%).</div>
+      </div>
+      <div class="contrib-item">
+        <div class="contrib-num">BASELINE</div>
+        <div class="contrib-title">NAFNet (Chen et al., 2022)</div>
+        <div class="contrib-desc">Original paper: 40.30 dB PSNR on SIDD denoising, 33.69 dB on GoPro deblurring. SimpleGate replaces all nonlinear activations.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Starfield ─────────────────────────────
+const canvas = document.getElementById('stars');
+const ctx = canvas.getContext('2d');
+let stars = [];
+function initStars() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  stars = Array.from({length:150}, () => ({
+    x: Math.random()*canvas.width,
+    y: Math.random()*canvas.height,
+    r: Math.random()*.8+.1,
+    a: Math.random(),
+    speed: Math.random()*.3+.1
+  }));
+}
+function drawStars() {
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  stars.forEach(s => {
+    s.a += s.speed * .01;
+    if (s.a > 1) { s.a = 0; s.x = Math.random()*canvas.width; s.y = Math.random()*canvas.height; }
+    ctx.beginPath();
+    ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+    ctx.fillStyle = `rgba(103,232,249,${Math.sin(s.a*Math.PI)*.5+.1})`;
+    ctx.fill();
+  });
+  requestAnimationFrame(drawStars);
+}
+window.addEventListener('resize', initStars);
+initStars(); drawStars();
+
+// ── Page navigation ─────────────────────
+function show(id, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('act'));
+  document.querySelectorAll('.nav-link').forEach(b => b.classList.remove('act'));
+  document.getElementById('page-'+id).classList.add('act');
+  if (btn) btn.classList.add('act');
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+// ── Restore logic ────────────────────────
+let restoredDataUrl = null;
+
+function ev(e) { e.preventDefault(); }
+
+function onDrop(e) {
+  e.preventDefault();
+  document.getElementById('dropZone').classList.remove('over');
+  const f = e.dataTransfer.files[0];
+  if (f && f.type.startsWith('image/')) processImage(f);
+}
+
+function onFile(e) {
+  const f = e.target.files[0];
+  if (f) processImage(f);
+}
+
+function startLoading() {
+  document.getElementById('resultBox').classList.remove('show');
+  const loader = document.getElementById('loader');
+  loader.classList.add('show');
+  const steps = [
+    "Analysing degradation...",
+    "Running DCP defogging...",
+    "DirectNAFNet inference...",
+    "Adaptive post-processing...",
+    "Finalising output..."
+  ];
+  const fill = document.getElementById('lfill');
+  const stepEl = document.getElementById('lstep');
+  let i = 0;
+  const t = setInterval(() => {
+    if (i < steps.length) {
+      stepEl.textContent = steps[i];
+      fill.style.width = ((i+1)/steps.length*100) + '%';
+      i++;
+    } else clearInterval(t);
+  }, 700);
+}
+
+function stopLoading() {
+  document.getElementById('loader').classList.remove('show');
+}
+
+async function processImage(file) {
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    const dataUrl = e.target.result;
+    document.getElementById('imgBefore').src = dataUrl;
+    startLoading();
+    const base = (document.getElementById('apiUrl').value||'').trim().replace(/\/$/,'');
+    let outputUrl;
+    try {
+      if (base && base.startsWith('http')) {
+        const uploadRes = await fetch(`${base}/gradio_api/upload`, {
+          method:'POST',
+          body: (() => { const fd = new FormData(); fd.append('files', file); return fd; })()
+        });
+        if (!uploadRes.ok) throw new Error('Upload failed');
+        const [uploadedFile] = await uploadRes.json();
+        const sessionHash = Math.random().toString(36).slice(2);
+        const joinRes = await fetch(`${base}/gradio_api/queue/join`, {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ fn_index:0, session_hash:sessionHash, data:[{path:uploadedFile, meta:{_type:'gradio.FileData'}}] })
+        });
+        if (!joinRes.ok) throw new Error('Queue join failed');
+        outputUrl = await new Promise((resolve, reject) => {
+          const es = new EventSource(`${base}/gradio_api/queue/data?session_hash=${sessionHash}`);
+          const timeout = setTimeout(() => { es.close(); reject(new Error('Timeout')); }, 180000);
+          es.onmessage = (ev) => {
+            try {
+              const event = JSON.parse(ev.data);
+              if (event.msg === 'process_completed') {
+                clearTimeout(timeout); es.close();
+                const out = event.output?.data?.[0];
+                if (!out) { reject(new Error('Empty output')); return; }
+                let url;
+                if (typeof out==='string') url = out.startsWith('data:')||out.startsWith('http') ? out : `${base}/gradio_api/file=${out}`;
+                else if (out?.url) url = out.url.startsWith('http') ? out.url : `${base}${out.url}`;
+                else if (out?.path) url = out.path.startsWith('http') ? out.path : `${base}/gradio_api/file=${out.path}`;
+                else { reject(new Error('Unknown output')); return; }
+                resolve(url);
+              } else if (event.msg==='process_errored') {
+                clearTimeout(timeout); es.close();
+                reject(new Error(event.output?.error||'Model error'));
+              }
+            } catch(e) {}
+          };
+          es.onerror = () => { clearTimeout(timeout); es.close(); reject(new Error('SSE failed')); };
+        });
+      } else {
+        await new Promise(r => setTimeout(r,3200));
+        outputUrl = await simulateRestore(dataUrl);
+      }
+      restoredDataUrl = outputUrl;
+      stopLoading();
+      document.getElementById('imgAfter').src = outputUrl;
+      document.getElementById('resMeta').textContent = `${file.name} · ${(file.size/1024).toFixed(0)} KB · ${new Date().toLocaleTimeString()}`;
+      document.getElementById('resultBox').classList.add('show');
+      document.getElementById('resultBox').scrollIntoView({behavior:'smooth',block:'nearest'});
+    } catch(err) {
+      stopLoading();
+      alert(`Error: ${err.message}`);
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+function simulateRestore(dataUrl) {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => {
+      const c = document.createElement('canvas');
+      c.width=img.width; c.height=img.height;
+      const ctx2=c.getContext('2d');
+      ctx2.filter='brightness(1.85) contrast(1.2) saturate(1.15)';
+      ctx2.drawImage(img,0,0);
+      resolve(c.toDataURL('image/jpeg',.93));
+    };
+    img.src=dataUrl;
+  });
+}
+
+function downloadImg() {
+  if (!restoredDataUrl) return;
+  const a = document.createElement('a');
+  a.href=restoredDataUrl;
+  a.download='nightrestore_'+Date.now()+'.jpg';
+  a.click();
+}
+
+function resetAll() {
+  restoredDataUrl=null;
+  document.getElementById('resultBox').classList.remove('show');
+  document.getElementById('fileInp').value='';
+  document.getElementById('dropZone').scrollIntoView({behavior:'smooth',block:'center'});
+}
+
+async function testAPI() {
+  const url = (document.getElementById('apiUrl').value||'').trim();
+  const dot = document.getElementById('apiDot');
+  if (!url) return;
+  dot.textContent='Testing…'; dot.className='api-dot no';
+  try {
+    const r = await fetch(url.replace(/\/$/,'')+'/info');
+    if (r.ok||r.status===200) { dot.textContent='✓ Connected'; dot.className='api-dot ok'; return; }
+    throw new Error('not ok');
+  } catch {
+    try {
+      await fetch(url.replace(/\/$/,'')+'/');
+      dot.textContent='✓ Reachable'; dot.className='api-dot ok';
+    } catch {
+      dot.textContent='✗ Offline (demo mode)'; dot.className='api-dot no';
+    }
+  }
+}
+
+window.addEventListener('load', () => setTimeout(testAPI, 800));
+</script>
+</body>
+</html>
