@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>FakeGuard — Internship Scam Detector</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg: #0a0a0f;
+  --surface: #111118;
+  --card: #16161f;
+  --border: #2a2a38;
+  --accent: #e84040;
+  --accent2: #ff7c00;
+  --safe: #22c55e;
+  --text: #f0f0f8;
+  --muted: #6b6b88;
+  --glow: rgba(232,64,64,0.18);
+  --mono: 'Space Mono', monospace;
+  --sans: 'Syne', sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);overflow-x:hidden}
+
+/* ─── NAV ─── */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:1.1rem 2.5rem;
+  background:rgba(10,10,15,0.85);
+  backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--border);
+}
+.nav-logo{font-family:var(--mono);font-weight:700;font-size:1.15rem;color:var(--accent);letter-spacing:-0.03em}
+.nav-logo span{color:var(--text)}
+.nav-links{display:flex;gap:0.3rem}
+.nav-links button{
+  background:none;border:none;cursor:pointer;
+  font-family:var(--sans);font-size:0.85rem;font-weight:600;
+  color:var(--muted);padding:0.45rem 1rem;border-radius:6px;
+  transition:all 0.2s;letter-spacing:0.04em;text-transform:uppercase;
+}
+.nav-links button:hover{color:var(--text);background:rgba(255,255,255,0.06)}
+.nav-links button.active{color:var(--accent);background:rgba(232,64,64,0.1)}
+
+/* ─── PAGES ─── */
+.page{display:none;min-height:100vh;padding-top:70px}
+.page.active{display:block}
+
+/* ════════ HOME PAGE ════════ */
+#home-page{
+  background:var(--bg);
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(232,64,64,0.12) 0%, transparent 70%),
+    repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(42,42,56,0.3) 40px),
+    repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(42,42,56,0.3) 40px);
+}
+.hero{
+  display:flex;flex-direction:column;align-items:center;
+  justify-content:center;min-height:calc(100vh - 70px);
+  padding:2rem;text-align:center;position:relative;
+}
+.hero-badge{
+  display:inline-flex;align-items:center;gap:0.5rem;
+  background:rgba(232,64,64,0.1);border:1px solid rgba(232,64,64,0.3);
+  border-radius:100px;padding:0.35rem 1rem;
+  font-family:var(--mono);font-size:0.72rem;color:var(--accent);
+  letter-spacing:0.08em;margin-bottom:2rem;
+  animation:fadeDown 0.6s ease both;
+}
+.hero-badge::before{content:"●";animation:blink 1.5s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+@keyframes fadeDown{from{opacity:0;transform:translateY(-16px)}to{opacity:1;transform:none}}
+
+.hero h1{
+  font-size:clamp(3.5rem,9vw,7.5rem);font-weight:800;line-height:0.95;
+  letter-spacing:-0.04em;margin-bottom:1.5rem;
+  animation:fadeUp 0.7s 0.1s ease both;
+}
+.hero h1 em{
+  font-style:normal;
+  background:linear-gradient(135deg, var(--accent), var(--accent2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+
+.hero p{
+  max-width:560px;font-size:1.05rem;line-height:1.7;color:#a0a0c0;
+  margin-bottom:2.5rem;animation:fadeUp 0.7s 0.2s ease both;
+}
+.hero-cta{
+  display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;
+  animation:fadeUp 0.7s 0.3s ease both;
+}
+.btn-primary{
+  background:var(--accent);color:#fff;border:none;cursor:pointer;
+  font-family:var(--sans);font-size:0.95rem;font-weight:700;
+  padding:0.85rem 2rem;border-radius:8px;
+  letter-spacing:0.02em;transition:all 0.2s;
+  box-shadow:0 0 30px rgba(232,64,64,0.35);
+}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 0 45px rgba(232,64,64,0.55)}
+.btn-ghost{
+  background:none;color:var(--text);border:1px solid var(--border);cursor:pointer;
+  font-family:var(--sans);font-size:0.95rem;font-weight:600;
+  padding:0.85rem 2rem;border-radius:8px;
+  transition:all 0.2s;
+}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
+
+.stats-row{
+  display:flex;gap:3rem;justify-content:center;flex-wrap:wrap;
+  margin-top:5rem;padding:2rem;
+  border-top:1px solid var(--border);
+  animation:fadeUp 0.7s 0.4s ease both;
+}
+.stat{text-align:center}
+.stat-num{font-family:var(--mono);font-size:2rem;font-weight:700;color:var(--accent)}
+.stat-label{font-size:0.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-top:0.25rem}
+
+.features{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:1.2rem;padding:4rem 2rem;max-width:1000px;margin:0 auto;
+}
+.feat-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:12px;padding:1.8rem;
+  transition:all 0.3s;position:relative;overflow:hidden;
+}
+.feat-card::before{
+  content:"";position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--accent),var(--accent2));
+  transform:scaleX(0);transform-origin:left;transition:transform 0.3s;
+}
+.feat-card:hover{border-color:rgba(232,64,64,0.3);transform:translateY(-4px)}
+.feat-card:hover::before{transform:scaleX(1)}
+.feat-icon{font-size:1.8rem;margin-bottom:1rem}
+.feat-title{font-size:0.95rem;font-weight:700;margin-bottom:0.5rem}
+.feat-desc{font-size:0.82rem;color:var(--muted);line-height:1.6}
+
+/* ════════ APP PAGE ════════ */
+#app-page{padding:2rem;max-width:900px;margin:0 auto}
+.app-header{
+  text-align:center;padding:3rem 1rem 2rem;
+}
+.app-header h2{font-size:2.2rem;font-weight:800;letter-spacing:-0.03em}
+.app-header p{color:var(--muted);margin-top:0.5rem}
+
+.detector-card{
+  background:var(--card);border:1px solid var(--border);border-radius:16px;
+  padding:2rem;margin-bottom:1.5rem;
+}
+.field-label{
+  font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;
+  color:var(--muted);margin-bottom:0.6rem;display:block;
+}
+.field-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;margin-bottom:1.2rem}
+input[type=text]{
+  width:100%;background:var(--surface);border:1px solid var(--border);
+  border-radius:8px;padding:0.75rem 1rem;color:var(--text);
+  font-family:var(--sans);font-size:0.9rem;outline:none;transition:border 0.2s;
+}
+input[type=text]:focus{border-color:var(--accent)}
+textarea{
+  width:100%;background:var(--surface);border:1px solid var(--border);
+  border-radius:8px;padding:1rem;color:var(--text);
+  font-family:var(--sans);font-size:0.9rem;outline:none;transition:border 0.2s;
+  resize:vertical;min-height:160px;line-height:1.6;
+}
+textarea:focus{border-color:var(--accent)}
+
+.analyze-btn{
+  width:100%;padding:1rem;background:var(--accent);color:#fff;
+  border:none;border-radius:10px;cursor:pointer;
+  font-family:var(--sans);font-size:1rem;font-weight:700;
+  letter-spacing:0.03em;transition:all 0.2s;margin-top:0.5rem;
+  box-shadow:0 0 25px rgba(232,64,64,0.3);
+}
+.analyze-btn:hover{background:#f03030;box-shadow:0 0 40px rgba(232,64,64,0.5)}
+.analyze-btn:active{transform:scale(0.99)}
+
+/* ── Upload Zone ── */
+.upload-zone{
+  border:2px dashed var(--border);border-radius:14px;
+  padding:3rem 2rem;text-align:center;cursor:pointer;
+  transition:all 0.25s;position:relative;background:var(--surface);
+}
+.upload-zone:hover,.upload-zone.drag-over{
+  border-color:var(--accent);background:rgba(232,64,64,0.05);
+}
+.upload-zone input[type=file]{
+  position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;
+}
+.upload-icon{font-size:3rem;margin-bottom:1rem;display:block}
+.upload-title{font-size:1.1rem;font-weight:700;margin-bottom:0.4rem}
+.upload-sub{font-size:0.82rem;color:var(--muted);line-height:1.6}
+.format-badges{display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap;margin-top:1rem}
+.fmt-badge{
+  font-family:var(--mono);font-size:0.7rem;
+  background:rgba(255,255,255,0.06);border:1px solid var(--border);
+  border-radius:5px;padding:0.2rem 0.6rem;color:var(--muted);
+}
+
+/* File preview bar */
+.file-preview{
+  display:none;background:var(--card);border:1px solid var(--border);
+  border-radius:10px;padding:1rem 1.2rem;margin-top:1rem;
+  align-items:center;gap:1rem;
+}
+.file-preview.show{display:flex}
+.file-icon-big{font-size:1.6rem;flex-shrink:0}
+.file-info{flex:1}
+.file-name{font-family:var(--mono);font-size:0.85rem;font-weight:700;color:var(--text)}
+.file-meta{font-size:0.75rem;color:var(--muted);margin-top:0.2rem}
+.file-remove{
+  background:none;border:none;cursor:pointer;
+  color:var(--muted);font-size:1.1rem;padding:0.3rem;
+  transition:color 0.2s;
+}
+.file-remove:hover{color:var(--accent)}
+
+/* Samples */
+.sample-btn{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:6px;padding:0.4rem 0.85rem;cursor:pointer;
+  font-family:var(--mono);font-size:0.73rem;color:var(--muted);
+  transition:all 0.2s;
+}
+.sample-btn:hover{border-color:var(--accent2);color:var(--accent2)}
+.samples-row{display:flex;gap:0.6rem;flex-wrap:wrap;margin-bottom:1.4rem;align-items:center}
+
+/* Result */
+#result-area{margin-top:1.5rem}
+.result-card{
+  border-radius:14px;padding:1.8rem;
+  border:2px solid;animation:popIn 0.4s cubic-bezier(0.16,1,0.3,1) both;
+}
+@keyframes popIn{from{opacity:0;transform:scale(0.95)}to{opacity:1;transform:scale(1)}}
+.result-card.fake{background:rgba(232,64,64,0.07);border-color:var(--accent)}
+.result-card.real{background:rgba(34,197,94,0.07);border-color:var(--safe)}
+.result-card.suspicious{background:rgba(255,124,0,0.07);border-color:var(--accent2)}
+
+.verdict-row{display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem}
+.verdict-badge{
+  font-family:var(--mono);font-size:1.1rem;font-weight:700;
+  padding:0.5rem 1.4rem;border-radius:100px;letter-spacing:0.08em;
+}
+.verdict-badge.fake{background:rgba(232,64,64,0.2);color:var(--accent);border:1px solid var(--accent)}
+.verdict-badge.real{background:rgba(34,197,94,0.2);color:var(--safe);border:1px solid var(--safe)}
+.verdict-badge.suspicious{background:rgba(255,124,0,0.2);color:var(--accent2);border:1px solid var(--accent2)}
+.risk-score{font-family:var(--mono);font-size:2rem;font-weight:700;margin-left:auto}
+
+/* Risk bar */
+.risk-bar-wrap{margin-bottom:1.2rem}
+.risk-bar-track{
+  height:8px;background:var(--surface);border-radius:100px;overflow:hidden;
+  margin-top:0.4rem;
+}
+.risk-bar-fill{
+  height:100%;border-radius:100px;
+  transition:width 1s cubic-bezier(0.16,1,0.3,1);
+}
+
+/* Signals grid */
+.signals-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+  gap:0.8rem;margin-top:1rem;
+}
+.signal-item{
+  background:rgba(255,255,255,0.04);border:1px solid var(--border);
+  border-radius:10px;padding:1rem;display:flex;flex-direction:column;gap:0.3rem;
+}
+.signal-name{font-size:0.72rem;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted)}
+.signal-val{font-family:var(--mono);font-size:1.4rem;font-weight:700}
+.signal-val.warn{color:var(--accent)}
+.signal-val.ok{color:var(--safe)}
+
+/* Flags list */
+.flags-section{margin-top:1.2rem}
+.flags-title{font-size:0.75rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);margin-bottom:0.6rem}
+.flag-pill{
+  display:inline-flex;align-items:center;gap:0.4rem;
+  background:rgba(232,64,64,0.1);border:1px solid rgba(232,64,64,0.25);
+  border-radius:100px;padding:0.3rem 0.8rem;margin:0.25rem;
+  font-family:var(--mono);font-size:0.73rem;color:#f87171;
+}
+
+/* Extracted text preview */
+.extracted-preview{
+  background:var(--surface);border:1px solid var(--border);border-radius:8px;
+  padding:0.9rem 1rem;margin-top:1rem;font-size:0.8rem;color:var(--muted);
+  font-family:var(--mono);line-height:1.6;max-height:100px;overflow:hidden;
+  position:relative;
+}
+.extracted-preview::after{
+  content:"";position:absolute;bottom:0;left:0;right:0;height:40px;
+  background:linear-gradient(transparent,var(--surface));
+}
+
+/* Run guide steps */
+.run-steps{display:grid;gap:0.8rem;margin-top:0.8rem}
+.run-step{
+  background:var(--card);border:1px solid var(--border);border-radius:10px;
+  padding:1rem 1.2rem;display:flex;gap:1rem;align-items:flex-start;
+}
+.step-num{
+  font-family:var(--mono);font-size:0.75rem;font-weight:700;
+  background:var(--accent);color:#fff;min-width:26px;height:26px;
+  border-radius:6px;display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;margin-top:0.1rem;
+}
+.step-body{font-size:0.83rem;color:var(--muted);line-height:1.7}
+.step-body strong{color:var(--text);display:block;margin-bottom:0.2rem}
+.step-body code{
+  font-family:var(--mono);background:rgba(255,255,255,0.07);
+  padding:0.1rem 0.4rem;border-radius:4px;color:#a5f3fc;font-size:0.78rem;
+}
+
+/* ════════ ABOUT PAGE ════════ */
+#about-page{padding:2rem;max-width:820px;margin:0 auto}
+.about-hero{padding:3rem 0 2rem;text-align:center}
+.about-hero h2{font-size:2.5rem;font-weight:800;letter-spacing:-0.04em}
+.about-hero .sub{color:var(--muted);margin-top:0.5rem;font-size:0.95rem}
+
+.team-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  gap:1rem;margin:2rem 0;
+}
+.team-card{
+  background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.5rem;
+  transition:all 0.3s;position:relative;overflow:hidden;
+}
+.team-card::after{
+  content:attr(data-role);position:absolute;top:1rem;right:1rem;
+  font-family:var(--mono);font-size:0.65rem;color:var(--accent);
+  background:rgba(232,64,64,0.1);padding:0.2rem 0.5rem;border-radius:4px;
+}
+.team-card:hover{border-color:rgba(232,64,64,0.35);transform:translateY(-3px)}
+.team-avatar{
+  width:48px;height:48px;border-radius:12px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.2rem;margin-bottom:1rem;
+}
+.team-name{font-size:0.95rem;font-weight:700}
+.team-prn{font-family:var(--mono);font-size:0.73rem;color:var(--muted);margin-top:0.2rem}
+.team-skills{font-size:0.75rem;color:var(--muted);margin-top:0.6rem;line-height:1.5}
+
+.about-section{margin:2.5rem 0}
+.about-section h3{font-size:1.2rem;font-weight:700;margin-bottom:1rem;
+  display:flex;align-items:center;gap:0.6rem}
+.about-section h3::before{content:"";display:block;width:4px;height:1.2em;
+  background:var(--accent);border-radius:2px}
+
+.syllabus-grid{display:grid;gap:0.8rem}
+.module-row{
+  background:var(--card);border:1px solid var(--border);border-radius:10px;
+  padding:1rem 1.2rem;display:flex;gap:1rem;align-items:flex-start;
+}
+.module-num{
+  font-family:var(--mono);font-size:0.7rem;color:var(--accent);
+  background:rgba(232,64,64,0.1);padding:0.2rem 0.5rem;border-radius:4px;
+  white-space:nowrap;margin-top:0.15rem;
+}
+.module-text{font-size:0.85rem;color:var(--muted);line-height:1.6}
+.module-text strong{color:var(--text)}
+
+.tech-pills{display:flex;flex-wrap:wrap;gap:0.5rem;margin-top:0.8rem}
+.tech-pill{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:6px;padding:0.3rem 0.75rem;
+  font-family:var(--mono);font-size:0.73rem;color:var(--muted);
+}
+
+.deploy-card{
+  background:var(--card);border:1px solid var(--border);border-radius:12px;
+  padding:1.5rem;display:flex;gap:1.5rem;align-items:flex-start;margin-bottom:1rem;
+}
+.deploy-icon{font-size:1.8rem;flex-shrink:0;margin-top:0.2rem}
+.deploy-title{font-size:0.95rem;font-weight:700;margin-bottom:0.4rem}
+.deploy-steps{font-size:0.82rem;color:var(--muted);line-height:1.8}
+.deploy-steps code{
+  font-family:var(--mono);background:rgba(255,255,255,0.07);
+  padding:0.1rem 0.4rem;border-radius:4px;color:#a5f3fc;
+}
+
+footer{
+  text-align:center;padding:2.5rem;border-top:1px solid var(--border);
+  font-family:var(--mono);font-size:0.75rem;color:var(--muted);margin-top:3rem;
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">Fake<span>Guard</span></div>
+  <div class="nav-links">
+    <button onclick="showPage('home')" id="nav-home" class="active">Home</button>
+    <button onclick="showPage('app')" id="nav-app">Detector</button>
+    <button onclick="showPage('about')" id="nav-about">About</button>
+  </div>
+</nav>
+
+<!-- ═══ HOME PAGE ═══ -->
+<div id="home-page" class="page active">
+  <div class="hero">
+    <div class="hero-badge">AID1102 · D Y Patil International University · 2025–26</div>
+    <h1>Detect<br/><em>Fake</em><br/>Internships</h1>
+    <p>AI-powered scam detection using Big Data techniques — PySpark MLlib, NLP lexicon analysis, and real-time Kafka streaming to protect students from fraudulent job offers.</p>
+    <div class="hero-cta">
+      <button class="btn-primary" onclick="showPage('app')">Try the Detector →</button>
+      <button class="btn-ghost" onclick="showPage('about')">View Project</button>
+    </div>
+    <div class="stats-row">
+      <div class="stat"><div class="stat-num">17,880</div><div class="stat-label">Records Analyzed</div></div>
+      <div class="stat"><div class="stat-num">43</div><div class="stat-label">Scam Phrases</div></div>
+      <div class="stat"><div class="stat-num">17</div><div class="stat-label">Features Engineered</div></div>
+      <div class="stat"><div class="stat-num">4</div><div class="stat-label">ML Models</div></div>
+    </div>
+  </div>
+  <div class="features">
+    <div class="feat-card">
+      <div class="feat-icon">🔍</div>
+      <div class="feat-title">Lexicon NLP Analysis</div>
+      <div class="feat-desc">43 India-specific scam phrases across 5 categories: payment traps, false promises, urgency tactics, no-barrier lures, and suspicious contacts.</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">⚡</div>
+      <div class="feat-title">PySpark MLlib</div>
+      <div class="feat-desc">Logistic Regression + Random Forest trained on 17 engineered features using distributed computing on the EMSCAD Kaggle dataset.</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">📡</div>
+      <div class="feat-title">Kafka Streaming</div>
+      <div class="feat-desc">Real-time internship offer analysis using simulated Apache Kafka producer-consumer pipeline with sub-50ms latency.</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">📊</div>
+      <div class="feat-title">Statistical Testing</div>
+      <div class="feat-desc">t-test, z-test, chi-square, and ANOVA hypothesis testing confirming statistical significance of scam signals.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ APP PAGE ═══ -->
+<div id="app-page" class="page">
+  <div class="app-header">
+    <h2>Internship Scam Detector</h2>
+    <p>Upload your JD file — we'll extract and analyze it instantly</p>
+  </div>
+
+  <div class="detector-card">
+    <div class="samples-row">
+      <span style="font-size:0.75rem;color:var(--muted);align-self:center;margin-right:0.2rem">Try built-in samples:</span>
+      <button class="sample-btn" onclick="loadSample('fake1')">🚩 Fake JD 1</button>
+      <button class="sample-btn" onclick="loadSample('fake2')">🚩 Fake JD 2</button>
+      <button class="sample-btn" onclick="loadSample('real1')">✅ Real JD</button>
+      <button class="sample-btn" onclick="clearAll()">✕ Reset</button>
+    </div>
+
+    <div class="upload-zone" id="upload-zone"
+         ondragover="event.preventDefault();this.classList.add('drag-over')"
+         ondragleave="this.classList.remove('drag-over')"
+         ondrop="handleDrop(event)">
+      <input type="file" id="file-input"
+             accept=".pdf,.docx,.doc,.txt,.rtf,.odt,.csv,.xlsx,.pptx"
+             onchange="handleFile(this.files[0])"/>
+      <span class="upload-icon">📂</span>
+      <div class="upload-title">Drop your JD file here or click to browse</div>
+      <div class="upload-sub">File stays on your device — nothing uploaded to any server.</div>
+      <div class="format-badges">
+        <span class="fmt-badge">PDF</span>
+        <span class="fmt-badge">DOCX</span>
+        <span class="fmt-badge">DOC</span>
+        <span class="fmt-badge">TXT</span>
+        <span class="fmt-badge">RTF</span>
+        <span class="fmt-badge">ODT</span>
+        <span class="fmt-badge">CSV</span>
+        <span class="fmt-badge">XLSX</span>
+        <span class="fmt-badge">PPTX</span>
+      </div>
+    </div>
+
+    <div class="file-preview" id="file-preview">
+      <div class="file-icon-big" id="file-icon">📄</div>
+      <div class="file-info">
+        <div class="file-name" id="file-name-display">—</div>
+        <div class="file-meta" id="file-meta-display">—</div>
+      </div>
+      <button class="file-remove" onclick="clearAll()" title="Remove file">✕</button>
+    </div>
+
+    <div id="extracted-preview-wrap" style="display:none">
+      <div style="font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin:1rem 0 0.4rem">Extracted Text Preview</div>
+      <div class="extracted-preview" id="extracted-preview"></div>
+    </div>
+
+    <button class="analyze-btn" id="analyze-btn" onclick="analyze()" disabled
+            style="opacity:0.4;cursor:not-allowed;margin-top:1.2rem">
+      🔍 Analyze for Scam Signals
+    </button>
+  </div>
+
+  <div id="result-area"></div>
+</div>
+
+<!-- ═══ ABOUT PAGE ═══ -->
+<div id="about-page" class="page">
+  <div class="about-hero">
+    <h2>Project Overview</h2>
+    <div class="sub">AID1102 — Advanced Big Data Analytics | Academic Year 2025–26</div>
+  </div>
+
+  <div class="about-section">
+    <h3>Team</h3>
+    <div class="team-grid">
+      <div class="team-card" data-role="Lead">
+        <div class="team-avatar">👑</div>
+        <div class="team-name">Prakhar Sharma</div>
+        <div class="team-prn">PRN: 20250804051</div>
+        <div class="team-skills">SparkSQL · Integration · Architecture</div>
+      </div>
+      <div class="team-card" data-role="Big Data">
+        <div class="team-avatar">⚡</div>
+        <div class="team-name">Atharva Jain</div>
+        <div class="team-prn">PRN: 20250804011</div>
+        <div class="team-skills">PySpark · Kafka · Data Engineering</div>
+      </div>
+      <div class="team-card" data-role="NLP">
+        <div class="team-avatar">🔤</div>
+        <div class="team-name">Sandhya Nagare</div>
+        <div class="team-prn">PRN: 20250804070</div>
+        <div class="team-skills">NLP · Lexicon · MapReduce</div>
+      </div>
+      <div class="team-card" data-role="Data Eng">
+        <div class="team-avatar">📊</div>
+        <div class="team-name">Tejas Dhopte</div>
+        <div class="team-prn">PRN: 20250804082</div>
+        <div class="team-skills">RDDs · EDA · Data Pipeline</div>
+      </div>
+      <div class="team-card" data-role="ML Eng">
+        <div class="team-avatar">🤖</div>
+        <div class="team-name">Avantika Kate</div>
+        <div class="team-prn">PRN: 20250804012</div>
+        <div class="team-skills">MLlib · K-Means · Classification</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="about-section">
+    <h3>Syllabus Alignment</h3>
+    <div class="syllabus-grid">
+      <div class="module-row">
+        <span class="module-num">MOD I</span>
+        <div class="module-text"><strong>Introduction to Big Data Analytics</strong> — 10 V's of Big Data, analytics lifecycle, types of analytics (descriptive → cognitive), data quality challenges. Covered in dataset exploration and project framing.</div>
+      </div>
+      <div class="module-row">
+        <span class="module-num">MOD II</span>
+        <div class="module-text"><strong>Statistical Foundations</strong> — PDF/CDF (Lab 01), Binomial/Normal distributions (Lab 02), t-test, z-test, chi-square, ANOVA (Lab 03). All implemented in Cell 5E of notebook.</div>
+      </div>
+      <div class="module-row">
+        <span class="module-num">MOD III</span>
+        <div class="module-text"><strong>Big Data Processing Frameworks</strong> — Apache Spark RDDs (Lab 07), MapReduce (Lab 08), DAG execution, PySpark session. Cells 5C and 5D in notebook.</div>
+      </div>
+      <div class="module-row">
+        <span class="module-num">MOD IV</span>
+        <div class="module-text"><strong>Analytics Techniques</strong> — Feature engineering (17 features), Logistic Regression, Random Forest, K-Means clustering (Lab 06), Association Rules using MLlib.</div>
+      </div>
+      <div class="module-row">
+        <span class="module-num">MOD V</span>
+        <div class="module-text"><strong>Tools & Streaming</strong> — Kafka real-time streaming simulation, SparkSQL (Lab 04), Plotly dashboards, real-world case study in student fraud protection.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="about-section">
+    <h3>Tech Stack</h3>
+    <div class="tech-pills">
+      <span class="tech-pill">Python 3.10</span>
+      <span class="tech-pill">PySpark 3.5</span>
+      <span class="tech-pill">Apache Spark RDDs</span>
+      <span class="tech-pill">Kafka Simulation</span>
+      <span class="tech-pill">MLlib</span>
+      <span class="tech-pill">Pandas</span>
+      <span class="tech-pill">NumPy</span>
+      <span class="tech-pill">SciPy</span>
+      <span class="tech-pill">statsmodels</span>
+      <span class="tech-pill">Plotly</span>
+      <span class="tech-pill">Seaborn</span>
+      <span class="tech-pill">Kaggle EMSCAD</span>
+      <span class="tech-pill">Google Colab</span>
+      <span class="tech-pill">Java 17</span>
+    </div>
+  </div>
+
+  <div class="about-section">
+    <h3>▶ How to Run Everything — Step by Step</h3>
+
+    <div style="font-size:0.82rem;color:var(--muted);margin-bottom:1rem">Follow these steps in order to run the full project from scratch.</div>
+
+    <div style="font-family:var(--mono);font-size:0.72rem;color:var(--accent);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.5rem">PART 1 — Run the Colab Notebook</div>
+    <div class="run-steps">
+      <div class="run-step">
+        <div class="step-num">1</div>
+        <div class="step-body"><strong>Open Google Colab</strong>Go to <code>colab.research.google.com</code> → File → Upload Notebook → select <code>FakeInternship_OPTIMIZED.ipynb</code></div>
+      </div>
+      <div class="run-step">
+        <div class="step-num">2</div>
+        <div class="step-body"><strong>Enable GPU (Optional but faster)</strong>Runtime → Change runtime type → Hardware accelerator → <code>T4 GPU</code> → Save</div>
+      </div>
+      <div class="run-step">
+        <div class="step-num">3</div>
+        <div class="step-body"><strong>Run Cell 1 (Install — ~2 min first time)</strong>Click ▶ on Cell 1. It installs Java 17 + PySpark + all packages. Only slow the first time — subsequent runs use cache.</div>
+      </div>
+      <div class="run-step">
+        <div class="step-num">4</div>
+        <div class="step-body"><strong>Run Cell 2 (Imports)</strong>Click ▶ on Cell 2. All Python libraries get imported. Should complete in &lt;10 seconds.</div>
+      </div>
+      <div class="run-step">
+        <div class="step-num">5</div>
+        <div class="step-body"><strong>Run Cell 3 — Load Dataset (2 options)</strong>
+        Option A: Upload your <code>kaggle.json</code> when prompted to download the real 17,880-record EMSCAD dataset.<br/>
+        Option B: Press Cancel — synthetic fallback dataset loads automatically. Both work fine.</div>
+      </div>
+      <div class="run-step">
+        <div class="step-num">6</div>
+        <div class="step-body"><strong>Run Cells 4A → 4H (Data Preprocessing)</strong>These cells do EDA, missing value analysis, class imbalance check, outlier detection. Run them in order by clicking each ▶.</div>
+      </div>
+      <div class="run-step">
+        <div class="step-num">7</div>
+        <div class="step-body"><strong>Run Cells 5A → 5F (Feature Eng + Spark + Stats)</strong>5A = Lexicon · 5B = 17 features · 5C = PySpark RDDs · 5D = MapReduce · 5E = Hypothesis Tests · 5F = Kafka Stream. Run each ▶ in order.</div>
+      </div>
+      <div class="run-step">
+        <div class="step-num">8</div>
+        <div class="step-body"><strong>Run Cell 6 (Train ML Models)</strong>Trains Logistic Regression, Random Forest, K-Means, Association Rules using PySpark MLlib. Takes ~1–2 min.</div>
+      </div>
+      <div class="run-step">
+        <div class="step-num">9</div>
+        <div class="step-body"><strong>Run Cells 7–8 (Results + Detection)</strong>Cell 7 = Plotly validation dashboard · Cell 8A/8B = built-in test samples · Cell 8C = paste your own JD · Cell 8D = upload a PDF/DOCX file</div>
+      </div>
+      <div class="run-step">
+        <div class="step-num">10</div>
+        <div class="step-body"><strong>Run Final Cell (Summary)</strong>Prints the complete project summary and stops Spark session cleanly.</div>
+      </div>
+    </div>
+
+    <div style="font-family:var(--mono);font-size:0.72rem;color:var(--accent);text-transform:uppercase;letter-spacing:0.08em;margin:1.5rem 0 0.5rem">PART 2 — Run this Frontend Website</div>
+    <div class="run-steps">
+      <div class="run-step">
+        <div class="step-num">A</div>
+        <div class="step-body"><strong>Download index.html</strong>Save the <code>index.html</code> file to any folder on your PC, e.g. <code>C:/FakeGuard/index.html</code></div>
+      </div>
+      <div class="run-step">
+        <div class="step-num">B</div>
+        <div class="step-body"><strong>Open folder in VS Code</strong>Open VS Code → File → Open Folder → select the folder containing index.html</div>
+      </div>
+      <div class="run-step">
+        <div class="step-num">C</div>
+        <div class="step-body"><strong>Install Live Server extension</strong>Press <code>Ctrl+Shift+X</code> → search <code>Live Server</code> by Ritwick Dey → Install</div>
+      </div>
+      <div class="run-step">
+        <div class="step-num">D</div>
+        <div class="step-body"><strong>Start Live Server</strong>Right-click <code>index.html</code> → "Open with Live Server" OR click <code>Go Live</code> in the bottom-right status bar. Opens at <code>http://127.0.0.1:5500</code></div>
+      </div>
+      <div class="run-step">
+        <div class="step-num">E</div>
+        <div class="step-body"><strong>Use the Detector</strong>Go to Detector tab → Upload any PDF/DOCX/TXT job offer file → click Analyze. Results appear instantly — no internet needed.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="about-section">
+    <h3>Deployment Guide</h3>
+    <div class="deploy-card">
+      <div class="deploy-icon">🖥️</div>
+      <div>
+        <div class="deploy-title">VS Code Live Server (Local — Never Expires)</div>
+        <div class="deploy-steps">
+          1. Install VS Code extension: <code>Live Server</code> by Ritwick Dey<br/>
+          2. Open <code>index.html</code> in VS Code<br/>
+          3. Click <code>Go Live</code> in the bottom-right status bar<br/>
+          4. Access at <code>http://127.0.0.1:5500/index.html</code><br/>
+          5. Share on LAN: use your IP like <code>http://192.168.x.x:5500</code>
+        </div>
+      </div>
+    </div>
+    <div class="deploy-card">
+      <div class="deploy-icon">🤗</div>
+      <div>
+        <div class="deploy-title">Hugging Face Spaces (Public — Free Hosting) ✅ LIVE</div>
+        <div class="deploy-steps">
+          Space URL: <code>https://huggingface.co/spaces/prrakhar07/fake-jd-detector</code><br/>
+          Embed URL: <code>https://prrakhar07-fake-jd-detector.hf.space</code><br/>
+          Status: 🟢 Running — link never expires, free forever on Hugging Face
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    FakeGuard · AID1102 Advanced Big Data Analytics · D Y Patil International University, Pune · 2025–26
+  </footer>
+</div>
+
+<script>
+// ─── Navigation ───
+function showPage(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-links button').forEach(b => b.classList.remove('active'));
+  document.getElementById(page + '-page').classList.add('active');
+  document.getElementById('nav-' + page).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+
+
+// ─── State ───
+let extractedText = '';
+
+// ─── File icons by type ───
+function fileIcon(ext) {
+  const map = {pdf:'📕', docx:'📘', doc:'📘', txt:'📄', rtf:'📄', odt:'📄', csv:'📊', xlsx:'📊', pptx:'📑'};
+  return map[ext] || '📎';
+}
+
+// ─── Drag & drop ───
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('upload-zone').classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file) handleFile(file);
+}
+
+// ─── File handler — extract text from various formats ───
+async function handleFile(file) {
+  if (!file) return;
+  const ext = file.name.split('.').pop().toLowerCase();
+  const allowed = ['pdf','docx','doc','txt','rtf','odt','csv','xlsx','pptx'];
+  if (!allowed.includes(ext)) {
+    alert('Unsupported format. Please upload: PDF, DOCX, DOC, TXT, RTF, ODT, CSV, XLSX, or PPTX.');
+    return;
+  }
+
+  // Show file preview bar
+  document.getElementById('file-preview').classList.add('show');
+  document.getElementById('file-icon').textContent = fileIcon(ext);
+  document.getElementById('file-name-display').textContent = file.name;
+  document.getElementById('file-meta-display').textContent = `${ext.toUpperCase()} · ${(file.size/1024).toFixed(1)} KB`;
+
+  // Extract text
+  let text = '';
+  try {
+    if (ext === 'txt' || ext === 'rtf' || ext === 'odt' || ext === 'csv') {
+      text = await readAsText(file);
+    } else if (ext === 'pdf') {
+      text = await extractPDF(file);
+    } else if (ext === 'docx' || ext === 'doc') {
+      text = await extractDOCX(file);
+    } else if (ext === 'xlsx') {
+      text = await extractXLSX(file);
+    } else if (ext === 'pptx') {
+      text = await extractPPTX(file);
+    }
+  } catch(err) {
+    text = '';
+    console.error('Extraction error:', err);
+  }
+
+  if (!text || text.trim().length < 10) {
+    document.getElementById('file-meta-display').textContent += ' · ⚠️ Could not extract text — try TXT or DOCX format';
+    extractedText = '';
+    setAnalyzeBtn(false);
+    return;
+  }
+
+  extractedText = text.trim();
+  const wordCount = extractedText.split(/\s+/).length;
+  document.getElementById('file-meta-display').textContent += ` · ${wordCount} words extracted`;
+
+  // Show preview
+  document.getElementById('extracted-preview-wrap').style.display = 'block';
+  document.getElementById('extracted-preview').textContent = extractedText.substring(0, 300) + (extractedText.length > 300 ? '...' : '');
+
+  setAnalyzeBtn(true);
+}
+
+// ─── Read as plain text ───
+function readAsText(file) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = e => res(e.target.result);
+    r.onerror = rej;
+    r.readAsText(file, 'UTF-8');
+  });
+}
+
+// ─── Extract PDF using PDF.js from CDN ───
+async function extractPDF(file) {
+  if (!window.pdfjsLib) {
+    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  }
+  const ab = await file.arrayBuffer();
+  const pdf = await window.pdfjsLib.getDocument({data: ab}).promise;
+  let full = '';
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const tc = await page.getTextContent();
+    full += tc.items.map(item => item.str).join(' ') + '\n';
+  }
+  return full;
+}
+
+// ─── Extract DOCX — read XML from ZIP ───
+async function extractDOCX(file) {
+  if (!window.JSZip) {
+    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js');
+  }
+  const ab = await file.arrayBuffer();
+  const zip = await JSZip.loadAsync(ab);
+  const xmlFile = zip.file('word/document.xml');
+  if (!xmlFile) return '';
+  const xml = await xmlFile.async('text');
+  // Strip XML tags, decode entities
+  return xml
+    .replace(/<w:br[^>]*\/>/g, '\n')
+    .replace(/<w:p[ >][^>]*>/g, '\n')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>')
+    .replace(/&apos;/g,"'").replace(/&quot;/g,'"')
+    .replace(/\s{2,}/g,' ').trim();
+}
+
+// ─── Extract XLSX — read sharedStrings + sheet XML ───
+async function extractXLSX(file) {
+  if (!window.JSZip) {
+    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js');
+  }
+  const ab = await file.arrayBuffer();
+  const zip = await JSZip.loadAsync(ab);
+  let text = '';
+  // Read all sheet XMLs
+  const sheetFiles = Object.keys(zip.files).filter(n => n.startsWith('xl/worksheets/') && n.endsWith('.xml'));
+  const ssFile = zip.file('xl/sharedStrings.xml');
+  let strings = [];
+  if (ssFile) {
+    const ssXml = await ssFile.async('text');
+    strings = [...ssXml.matchAll(/<t[^>]*>([^<]*)<\/t>/g)].map(m => m[1]);
+  }
+  for (const sf of sheetFiles.slice(0,3)) {
+    const xml = await zip.file(sf).async('text');
+    const cells = [...xml.matchAll(/<c [^>]*t="s"[^>]*><v>(\d+)<\/v>/g)];
+    cells.forEach(c => { const i = parseInt(c[1]); if (strings[i]) text += strings[i] + ' '; });
+    const nums = [...xml.matchAll(/<c [^>]*><v>([^<]+)<\/v>/g)];
+    nums.forEach(c => text += c[1] + ' ');
+  }
+  return text.replace(/\s{2,}/g,' ').trim();
+}
+
+// ─── Extract PPTX — read slide XMLs ───
+async function extractPPTX(file) {
+  if (!window.JSZip) {
+    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js');
+  }
+  const ab = await file.arrayBuffer();
+  const zip = await JSZip.loadAsync(ab);
+  let text = '';
+  const slides = Object.keys(zip.files).filter(n => n.match(/ppt\/slides\/slide\d+\.xml$/));
+  for (const s of slides.slice(0, 20)) {
+    const xml = await zip.file(s).async('text');
+    text += xml.replace(/<[^>]+>/g,' ').replace(/\s{2,}/g,' ') + ' ';
+  }
+  return text.trim();
+}
+
+// ─── Dynamic script loader ───
+function loadScript(src) {
+  return new Promise((res, rej) => {
+    if (document.querySelector(`script[src="${src}"]`)) { res(); return; }
+    const s = document.createElement('script');
+    s.src = src; s.onload = res; s.onerror = rej;
+    document.head.appendChild(s);
+  });
+}
+
+// ─── Enable/disable analyze button ───
+function setAnalyzeBtn(enabled) {
+  const btn = document.getElementById('analyze-btn');
+  btn.disabled = !enabled;
+  btn.style.opacity = enabled ? '1' : '0.4';
+  btn.style.cursor = enabled ? 'pointer' : 'not-allowed';
+}
+
+// ─── Clear all ───
+function clearAll() {
+  extractedText = '';
+  document.getElementById('file-input').value = '';
+  document.getElementById('file-preview').classList.remove('show');
+  document.getElementById('extracted-preview-wrap').style.display = 'none';
+  document.getElementById('result-area').innerHTML = '';
+  setAnalyzeBtn(false);
+}
+
+// ─── Samples ───
+const SAMPLES = {
+  fake1: `URGENT HIRING! Earn 50,000 per month working from home. No experience required, free laptop guaranteed to all selected candidates. Pay a small registration fee of 999 to activate your account. Guaranteed placement in top MNC companies. Apply now — only 5 seats left! Last date TODAY. Call/WhatsApp: 9876543210. Join immediately and start earning from day one. 100 percent job guarantee or full money back guarantee. Earn from home without any investment from your side after initial fee.`,
+  fake2: `Exciting work from home opportunity! Earn lakhs per month with our proven system. Non-refundable processing fee of 500 required. Earn daily from your mobile. Free iPhone for top performers. Immediate joining apply before midnight. No qualifications needed no experience no barrier. Just pay the joining fee and start earning. Urgent requirement. Limited seats available. WhatsApp now on +91-9999999999 for instant activation.`,
+  real1: `TCS is looking for engineering students for a 6-month internship in the Digital Transformation team. You will work on Java Spring Boot microservices and REST API development. Requirements B.Tech B.E. in Computer Science or related field knowledge of Java and SQL good communication skills. Stipend 15000 per month. No fees required. Location Hinjewadi Phase 1 Pune. Working hours 9 AM to 6 PM Monday to Friday. Apply through official TCS NextStep portal. Shortlisted candidates will be contacted for online assessment followed by technical interview.`
+};
+
+function loadSample(key) {
+  extractedText = SAMPLES[key];
+  document.getElementById('file-preview').classList.add('show');
+  document.getElementById('file-icon').textContent = '📝';
+  document.getElementById('file-name-display').textContent = `Sample: ${key}`;
+  document.getElementById('file-meta-display').textContent = `${extractedText.split(/\s+/).length} words · built-in sample`;
+  document.getElementById('extracted-preview-wrap').style.display = 'block';
+  document.getElementById('extracted-preview').textContent = extractedText.substring(0, 300) + '...';
+  document.getElementById('result-area').innerHTML = '';
+  setAnalyzeBtn(true);
+}
+
+// ─── Lexicon ───
+const LEXICON = {
+  payment: ["pay deposit","security deposit","registration fee","activation fee","training fee","joining fee","processing fee","advance payment","refundable deposit","non-refundable fee","pay to join","payment required","fee required","999","500"],
+  promise: ["earn lakhs","earn 50000","earn 1 lakh","guaranteed income","earn from home","work from home earn","easy money","earn daily","free laptop","free iphone","100 percent job guarantee","guaranteed placement","money back guarantee","earn ₹","earn rupees"],
+  urgency: ["immediate joining","join immediately","apply now","last date today","urgent requirement","only few seats","apply before midnight","hurry","limited seats","seats left","last date","urgent hiring"],
+  no_barrier: ["no experience","no qualification","no skills","no barrier","easy job","anyone can do","no degree required","freshers only","0 experience","simple work"],
+  contact: ["whatsapp","call now","contact immediately","message now","+91-9","9876543210","9999999999","register here","click here to join"]
+};
+
+// ─── Analyze ───
+function analyze() {
+  if (!extractedText || extractedText.length < 20) {
+    alert('Please upload a file or load a sample first.');
+    return;
+  }
+  const text = extractedText;
+  const tl = text.toLowerCase();
+  const wc = text.split(/\s+/).length;
+
+  let hits = { payment:0, promise:0, urgency:0, no_barrier:0, contact:0 };
+  let flags = [];
+
+  for (const [cat, phrases] of Object.entries(LEXICON)) {
+    for (const p of phrases) {
+      if (tl.includes(p)) { hits[cat]++; flags.push(p); }
+    }
+  }
+
+  const hasUrl    = /http|www|\.com/i.test(text) ? 1 : 0;
+  const hasPhone  = /\d{10}|\+91/.test(text) ? 1 : 0;
+  const locSusp   = /work from home|wfh|online|remote|anywhere/i.test(text) ? 1 : 0;
+  const salSusp   = /\d{5,}/.test(text) && /earn|salary|stipend|pay/i.test(text) ? 1 : 0;
+  const compMiss  = !/company|pvt|ltd|llp|inc|corp|tcs|infosys|wipro|hcl|accenture/i.test(text) ? 1 : 0;
+  const exclaim   = (text.match(/!/g) || []).length;
+
+  const totalHits  = Object.values(hits).reduce((a,b)=>a+b,0);
+  const lexScore   = Math.min(totalHits * 12, 60);
+  const metaScore  = (compMiss*10)+(locSusp*10)+(salSusp*8)+(hasPhone*8)+(hasUrl*4)+Math.min(exclaim*2,10);
+  let risk = Math.min(lexScore + metaScore, 100);
+  if (wc < 40) risk = Math.min(risk + 15, 100);
+
+  const label = risk >= 60 ? 'FAKE' : risk >= 35 ? 'SUSPICIOUS' : 'REAL';
+  const cls   = label.toLowerCase();
+  const clr   = label==='FAKE'?'var(--accent)':label==='SUSPICIOUS'?'var(--accent2)':'var(--safe)';
+
+  document.getElementById('result-area').innerHTML = `
+    <div class="result-card ${cls}">
+      <div class="verdict-row">
+        <div>
+          <div class="verdict-badge ${cls}">${label==='FAKE'?'🚩 FAKE':label==='REAL'?'✅ REAL':'⚠️ SUSPICIOUS'}</div>
+          <div style="font-size:0.82rem;color:var(--muted);margin-top:0.4rem">
+            ${label==='FAKE'?'High probability of scam — DO NOT apply':label==='SUSPICIOUS'?'Verify carefully before applying':'Appears to be a legitimate posting'}
+          </div>
+        </div>
+        <div class="risk-score" style="color:${clr}">${risk}/100</div>
+      </div>
+
+      <div class="risk-bar-wrap">
+        <div style="font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted)">Risk Score</div>
+        <div class="risk-bar-track">
+          <div class="risk-bar-fill" style="width:${risk}%;background:${clr}"></div>
+        </div>
+      </div>
+
+      <div class="signals-grid">
+        ${[['Payment Traps',hits.payment],['False Promises',hits.promise],['Urgency Tactics',hits.urgency],
+           ['No-Barrier Lure',hits.no_barrier],['Suspicious Contact',hits.contact],
+           ['No Company Name',compMiss],['Susp. Location',locSusp],['Exclamations',exclaim]]
+          .map(([n,v])=>`<div class="signal-item">
+            <div class="signal-name">${n}</div>
+            <div class="signal-val ${v>0?'warn':'ok'}">${typeof v==='number'&&v>1?v:(v?'YES':'NO')}</div>
+          </div>`).join('')}
+      </div>
+
+      ${flags.length > 0 ? `
+      <div class="flags-section">
+        <div class="flags-title">🚩 Red Flag Phrases Detected (${flags.length})</div>
+        ${flags.map(f=>`<span class="flag-pill">⚡ ${f}</span>`).join('')}
+      </div>` : `<div style="margin-top:1rem;font-size:0.85rem;color:var(--safe)">✅ No known scam phrases detected.</div>`}
+
+      <div style="margin-top:1.5rem;padding-top:1rem;border-top:1px solid var(--border);font-size:0.78rem;color:var(--muted)">
+        Analyzed ${wc} words · ${flags.length} lexicon hits · Lex: ${lexScore} + Meta: ${metaScore} = Risk ${risk}/100
+        <br/><em>This is rule-based lexicon analysis. For full PySpark MLlib prediction, run the Colab notebook.</em>
+      </div>
+    </div>
+  `;
+  document.getElementById('result-area').scrollIntoView({behavior:'smooth', block:'start'});
+}
+</script>
+</body>
+</html>
